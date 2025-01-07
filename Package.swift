@@ -1,15 +1,14 @@
-// swift-tools-version:5.1
-// The swift-tools-version declares the minimum version of Swift required to build this package.
+// swift-tools-version:6.0
 
 import PackageDescription
 
 let package = Package(
     name: "AnyCodable",
     platforms:  [
-        .iOS(.v9),
-        .macOS(.v10_10),
-        .tvOS(.v9),
-        .watchOS(.v2),
+        .iOS(.v16),
+        .macOS(.v13),
+        .tvOS(.v16),
+        .watchOS(.v9),
     ],
     products: [
         // Products define the executables and libraries produced by a package, and make them visible to other packages.
@@ -33,5 +32,6 @@ let package = Package(
             name: "AnyCodableTests",
             dependencies: ["AnyCodable"]
         ),
-    ]
+    ],
+    swiftLanguageModes: [.v6]
 )
