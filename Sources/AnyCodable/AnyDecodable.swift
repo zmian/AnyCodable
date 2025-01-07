@@ -31,19 +31,19 @@ import Foundation
      let decoder = JSONDecoder()
      let dictionary = try! decoder.decode([String: AnyDecodable].self, from: json)
  */
-@frozen public struct AnyDecodable: Decodable {
-    public let value: Any
+@frozen public struct AnyDecodable: Decodable, Sendable {
+    public let value: any Sendable
 
-    public init<T>(_ value: T?) {
+    public init<T: Sendable>(_ value: T?) {
         self.value = value ?? ()
     }
 }
 
 @usableFromInline
 protocol _AnyDecodable {
-    var value: Any { get }
+    var value: any Sendable { get }
 
-    init<T>(_ value: T?)
+    init<T: Sendable>(_ value: T?)
 }
 
 extension AnyDecodable: _AnyDecodable {}
@@ -79,12 +79,12 @@ extension _AnyDecodable {
 }
 
 extension AnyDecodable: Equatable {
-    public static func == (lhs: AnyDecodable, rhs: AnyDecodable) -> Bool {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs.value, rhs.value) {
-#if canImport(Foundation)
+        #if canImport(Foundation)
         case is (NSNull, NSNull), is (Void, Void):
             return true
-#endif
+        #endif
         case let (lhs as Bool, rhs as Bool):
             return lhs == rhs
         case let (lhs as Int, rhs as Int):
@@ -119,30 +119,6 @@ extension AnyDecodable: Equatable {
             return lhs == rhs
         default:
             return false
-        }
-    }
-}
-
-extension AnyDecodable: CustomStringConvertible {
-    public var description: String {
-        switch value {
-        case is Void:
-            return String(describing: nil as Any?)
-        case let value as CustomStringConvertible:
-            return value.description
-        default:
-            return String(describing: value)
-        }
-    }
-}
-
-extension AnyDecodable: CustomDebugStringConvertible {
-    public var debugDescription: String {
-        switch value {
-        case let value as CustomDebugStringConvertible:
-            return "AnyDecodable(\(value.debugDescription))"
-        default:
-            return "AnyDecodable(\(description))"
         }
     }
 }
@@ -184,6 +160,30 @@ extension AnyDecodable: Hashable {
             hasher.combine(value)
         default:
             break
+        }
+    }
+}
+
+extension AnyDecodable: CustomStringConvertible {
+    public var description: String {
+        switch value {
+        case is Void:
+            return String(describing: nil as Any?)
+        case let value as CustomStringConvertible:
+            return value.description
+        default:
+            return String(describing: value)
+        }
+    }
+}
+
+extension AnyDecodable: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        switch value {
+        case let value as CustomDebugStringConvertible:
+            return "AnyDecodable(\(value.debugDescription))"
+        default:
+            return "AnyDecodable(\(description))"
         }
     }
 }

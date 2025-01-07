@@ -29,19 +29,19 @@ import Foundation
      let encoder = JSONEncoder()
      let json = try! encoder.encode(dictionary)
  */
-@frozen public struct AnyEncodable: Encodable {
-    public let value: Any
+@frozen public struct AnyEncodable: Encodable, Sendable {
+    public let value: any Sendable
 
-    public init<T>(_ value: T?) {
+    public init<T: Sendable>(_ value: T?) {
         self.value = value ?? ()
     }
 }
 
 @usableFromInline
 protocol _AnyEncodable {
-    var value: Any { get }
+    var value: any Sendable { get }
 
-    init<T>(_ value: T?)
+    init<T: Sendable>(_ value: T?)
 }
 
 extension AnyEncodable: _AnyEncodable {}
@@ -95,9 +95,9 @@ extension _AnyEncodable {
         case let url as URL:
             try container.encode(url)
         #endif
-        case let array as [Any?]:
+            case let array as [(any Sendable)?]:
             try container.encode(array.map { AnyEncodable($0) })
-        case let dictionary as [String: Any?]:
+        case let dictionary as [String: (any Sendable)?]:
             try container.encode(dictionary.mapValues { AnyEncodable($0) })
         case let encodable as Encodable:
             try encodable.encode(to: encoder)
@@ -141,7 +141,7 @@ extension _AnyEncodable {
 }
 
 extension AnyEncodable: Equatable {
-    public static func == (lhs: AnyEncodable, rhs: AnyEncodable) -> Bool {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs.value, rhs.value) {
         case is (Void, Void):
             return true
@@ -183,73 +183,6 @@ extension AnyEncodable: Equatable {
     }
 }
 
-extension AnyEncodable: CustomStringConvertible {
-    public var description: String {
-        switch value {
-        case is Void:
-            return String(describing: nil as Any?)
-        case let value as CustomStringConvertible:
-            return value.description
-        default:
-            return String(describing: value)
-        }
-    }
-}
-
-extension AnyEncodable: CustomDebugStringConvertible {
-    public var debugDescription: String {
-        switch value {
-        case let value as CustomDebugStringConvertible:
-            return "AnyEncodable(\(value.debugDescription))"
-        default:
-            return "AnyEncodable(\(description))"
-        }
-    }
-}
-
-extension AnyEncodable: ExpressibleByNilLiteral {}
-extension AnyEncodable: ExpressibleByBooleanLiteral {}
-extension AnyEncodable: ExpressibleByIntegerLiteral {}
-extension AnyEncodable: ExpressibleByFloatLiteral {}
-extension AnyEncodable: ExpressibleByStringLiteral {}
-extension AnyEncodable: ExpressibleByStringInterpolation {}
-extension AnyEncodable: ExpressibleByArrayLiteral {}
-extension AnyEncodable: ExpressibleByDictionaryLiteral {}
-
-extension _AnyEncodable {
-    public init(nilLiteral _: ()) {
-        self.init(nil as Any?)
-    }
-
-    public init(booleanLiteral value: Bool) {
-        self.init(value)
-    }
-
-    public init(integerLiteral value: Int) {
-        self.init(value)
-    }
-
-    public init(floatLiteral value: Double) {
-        self.init(value)
-    }
-
-    public init(extendedGraphemeClusterLiteral value: String) {
-        self.init(value)
-    }
-
-    public init(stringLiteral value: String) {
-        self.init(value)
-    }
-
-    public init(arrayLiteral elements: Any...) {
-        self.init(elements)
-    }
-
-    public init(dictionaryLiteral elements: (AnyHashable, Any)...) {
-        self.init([AnyHashable: Any](elements, uniquingKeysWith: { first, _ in first }))
-    }
-}
-
 extension AnyEncodable: Hashable {
     public func hash(into hasher: inout Hasher) {
         switch value {
@@ -288,5 +221,73 @@ extension AnyEncodable: Hashable {
         default:
             break
         }
+    }
+}
+
+extension AnyEncodable: CustomStringConvertible {
+    public var description: String {
+        switch value {
+        case is Void:
+            return String(describing: nil as Any?)
+        case let value as CustomStringConvertible:
+            return value.description
+        default:
+            return String(describing: value)
+        }
+    }
+}
+
+extension AnyEncodable: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        switch value {
+        case let value as CustomDebugStringConvertible:
+            return "AnyEncodable(\(value.debugDescription))"
+        default:
+            return "AnyEncodable(\(description))"
+        }
+    }
+}
+
+extension AnyEncodable: ExpressibleByNilLiteral {}
+extension AnyEncodable: ExpressibleByBooleanLiteral {}
+extension AnyEncodable: ExpressibleByIntegerLiteral {}
+extension AnyEncodable: ExpressibleByFloatLiteral {}
+extension AnyEncodable: ExpressibleByStringLiteral {}
+extension AnyEncodable: ExpressibleByStringInterpolation {}
+extension AnyEncodable: ExpressibleByArrayLiteral {}
+extension AnyEncodable: ExpressibleByDictionaryLiteral {}
+
+extension _AnyEncodable {
+    public init(nilLiteral _: ()) {
+        self.init(nil as (any Sendable)?)
+    }
+
+    public init(booleanLiteral value: Bool) {
+        self.init(value)
+    }
+
+    public init(integerLiteral value: Int) {
+        self.init(value)
+    }
+
+    public init(floatLiteral value: Double) {
+        self.init(value)
+    }
+
+    public init(extendedGraphemeClusterLiteral value: String) {
+        self.init(value)
+    }
+
+    public init(stringLiteral value: String) {
+        self.init(value)
+    }
+
+    public init(arrayLiteral elements: any Sendable...) {
+        self.init(elements)
+    }
+
+    public init(dictionaryLiteral elements: (String, any Sendable)...) {
+        let dict = Dictionary(elements, uniquingKeysWith: { first, _ in first })
+        self.init(dict)
     }
 }

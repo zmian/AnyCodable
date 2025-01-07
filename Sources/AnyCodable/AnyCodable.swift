@@ -12,10 +12,10 @@ import Foundation
  - SeeAlso: `AnyEncodable`
  - SeeAlso: `AnyDecodable`
  */
-@frozen public struct AnyCodable: Codable {
-    public let value: Any
+@frozen public struct AnyCodable: Codable, Sendable {
+    public let value: any Sendable
 
-    public init<T>(_ value: T?) {
+    public init<T: Sendable>(_ value: T?) {
         self.value = value ?? ()
     }
 }
@@ -23,7 +23,7 @@ import Foundation
 extension AnyCodable: _AnyEncodable, _AnyDecodable {}
 
 extension AnyCodable: Equatable {
-    public static func == (lhs: AnyCodable, rhs: AnyCodable) -> Bool {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs.value, rhs.value) {
         case is (Void, Void):
             return true
@@ -71,40 +71,6 @@ extension AnyCodable: Equatable {
     }
 }
 
-extension AnyCodable: CustomStringConvertible {
-    public var description: String {
-        switch value {
-        case is Void:
-            return String(describing: nil as Any?)
-        case let value as CustomStringConvertible:
-            return value.description
-        default:
-            return String(describing: value)
-        }
-    }
-}
-
-extension AnyCodable: CustomDebugStringConvertible {
-    public var debugDescription: String {
-        switch value {
-        case let value as CustomDebugStringConvertible:
-            return "AnyCodable(\(value.debugDescription))"
-        default:
-            return "AnyCodable(\(description))"
-        }
-    }
-}
-
-extension AnyCodable: ExpressibleByNilLiteral {}
-extension AnyCodable: ExpressibleByBooleanLiteral {}
-extension AnyCodable: ExpressibleByIntegerLiteral {}
-extension AnyCodable: ExpressibleByFloatLiteral {}
-extension AnyCodable: ExpressibleByStringLiteral {}
-extension AnyCodable: ExpressibleByStringInterpolation {}
-extension AnyCodable: ExpressibleByArrayLiteral {}
-extension AnyCodable: ExpressibleByDictionaryLiteral {}
-
-
 extension AnyCodable: Hashable {
     public func hash(into hasher: inout Hasher) {
         switch value {
@@ -145,3 +111,36 @@ extension AnyCodable: Hashable {
         }
     }
 }
+
+extension AnyCodable: CustomStringConvertible {
+    public var description: String {
+        switch value {
+        case is Void:
+            return String(describing: nil as Any?)
+        case let value as CustomStringConvertible:
+            return value.description
+        default:
+            return String(describing: value)
+        }
+    }
+}
+
+extension AnyCodable: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        switch value {
+        case let value as CustomDebugStringConvertible:
+            return "AnyCodable(\(value.debugDescription))"
+        default:
+            return "AnyCodable(\(description))"
+        }
+    }
+}
+
+extension AnyCodable: ExpressibleByNilLiteral {}
+extension AnyCodable: ExpressibleByBooleanLiteral {}
+extension AnyCodable: ExpressibleByIntegerLiteral {}
+extension AnyCodable: ExpressibleByFloatLiteral {}
+extension AnyCodable: ExpressibleByStringLiteral {}
+extension AnyCodable: ExpressibleByStringInterpolation {}
+extension AnyCodable: ExpressibleByArrayLiteral {}
+extension AnyCodable: ExpressibleByDictionaryLiteral {}
