@@ -1,8 +1,8 @@
+import Testing
+import Foundation
 @testable import AnyCodable
-import XCTest
 
-class AnyEncodableTests: XCTestCase {
-    
+struct AnyEncodableTests {
     struct SomeEncodable: Encodable {
         var string: String
         var int: Int
@@ -16,11 +16,18 @@ class AnyEncodableTests: XCTestCase {
             case hasUnderscore = "has_underscore"
         }
     }
-    
-    func testJSONEncoding() throws {
-        
-        let someEncodable = AnyEncodable(SomeEncodable(string: "String", int: 100, bool: true, hasUnderscore: "another string"))
-        
+
+    @Test
+    func jsonEncoding() throws {
+        let someEncodable = AnyEncodable(
+            SomeEncodable(
+                string: "String",
+                int: 100,
+                bool: true,
+                hasUnderscore: "another string"
+            )
+        )
+
         let dictionary: [String: AnyEncodable] = [
             "boolean": true,
             "integer": 42,
@@ -37,11 +44,10 @@ class AnyEncodableTests: XCTestCase {
         ]
 
         let encoder = JSONEncoder()
-
         let json = try encoder.encode(dictionary)
-        let encodedJSONObject = try JSONSerialization.jsonObject(with: json, options: []) as! NSDictionary
+        let encodedJSONObject = try #require(try JSONSerialization.jsonObject(with: json) as? NSDictionary)
 
-        let expected = """
+        let expected = try #require("""
         {
             "boolean": true,
             "integer": 42,
@@ -61,13 +67,14 @@ class AnyEncodableTests: XCTestCase {
             },
             "null": null
         }
-        """.data(using: .utf8)!
-        let expectedJSONObject = try JSONSerialization.jsonObject(with: expected, options: []) as! NSDictionary
+        """.data(using: .utf8))
 
-        XCTAssertEqual(encodedJSONObject, expectedJSONObject)
+        let expectedJSONObject = try #require(try JSONSerialization.jsonObject(with: expected) as? NSDictionary)
+        #expect(encodedJSONObject == expectedJSONObject)
     }
 
-    func testEncodeNSNumber() throws {
+    @Test
+    func encodeNSNumber() throws {
         let dictionary: [String: NSNumber] = [
             "boolean": true,
             "char": -127,
@@ -84,11 +91,10 @@ class AnyEncodableTests: XCTestCase {
         ]
 
         let encoder = JSONEncoder()
-
         let json = try encoder.encode(AnyEncodable(dictionary))
-        let encodedJSONObject = try JSONSerialization.jsonObject(with: json, options: []) as! NSDictionary
+        let encodedJSONObject = try #require(try JSONSerialization.jsonObject(with: json) as? NSDictionary)
 
-        let expected = """
+        let expected = try #require("""
         {
             "boolean": true,
             "char": -127,
@@ -103,28 +109,29 @@ class AnyEncodableTests: XCTestCase {
             "ulonglong": 18446744073709615,
             "double": 3.141592653589793,
         }
-        """.data(using: .utf8)!
-        let expectedJSONObject = try JSONSerialization.jsonObject(with: expected, options: []) as! NSDictionary
+        """.data(using: .utf8))
 
-        XCTAssertEqual(encodedJSONObject, expectedJSONObject)
-        XCTAssert(encodedJSONObject["boolean"] is Bool)
+        let expectedJSONObject = try #require(try JSONSerialization.jsonObject(with: expected) as? NSDictionary)
+        #expect(encodedJSONObject == expectedJSONObject)
+        #expect(encodedJSONObject["boolean"] is Bool)
 
-        XCTAssert(encodedJSONObject["char"] is Int8)
-        XCTAssert(encodedJSONObject["int"] is Int16)
-        XCTAssert(encodedJSONObject["short"] is Int32)
-        XCTAssert(encodedJSONObject["long"] is Int32)
-        XCTAssert(encodedJSONObject["longlong"] is Int64)
+        #expect(encodedJSONObject["char"] is Int8)
+        #expect(encodedJSONObject["int"] is Int16)
+        #expect(encodedJSONObject["short"] is Int32)
+        #expect(encodedJSONObject["long"] is Int32)
+        #expect(encodedJSONObject["longlong"] is Int64)
 
-        XCTAssert(encodedJSONObject["uchar"] is UInt8)
-        XCTAssert(encodedJSONObject["uint"] is UInt16)
-        XCTAssert(encodedJSONObject["ushort"] is UInt32)
-        XCTAssert(encodedJSONObject["ulong"] is UInt32)
-        XCTAssert(encodedJSONObject["ulonglong"] is UInt64)
+        #expect(encodedJSONObject["uchar"] is UInt8)
+        #expect(encodedJSONObject["uint"] is UInt16)
+        #expect(encodedJSONObject["ushort"] is UInt32)
+        #expect(encodedJSONObject["ulong"] is UInt32)
+        #expect(encodedJSONObject["ulonglong"] is UInt64)
 
-        XCTAssert(encodedJSONObject["double"] is Double)
+        #expect(encodedJSONObject["double"] is Double)
     }
 
-    func testStringInterpolationEncoding() throws {
+    @Test
+    func stringInterpolationEncoding() throws {
         let dictionary: [String: AnyEncodable] = [
             "boolean": "\(true)",
             "integer": "\(42)",
@@ -134,11 +141,10 @@ class AnyEncodableTests: XCTestCase {
         ]
 
         let encoder = JSONEncoder()
-
         let json = try encoder.encode(dictionary)
-        let encodedJSONObject = try JSONSerialization.jsonObject(with: json, options: []) as! NSDictionary
+        let encodedJSONObject = try #require(try JSONSerialization.jsonObject(with: json) as? NSDictionary)
 
-        let expected = """
+        let expected = try #require("""
         {
             "boolean": "true",
             "integer": "42",
@@ -146,9 +152,9 @@ class AnyEncodableTests: XCTestCase {
             "string": "string",
             "array": "[1, 2, 3]",
         }
-        """.data(using: .utf8)!
-        let expectedJSONObject = try JSONSerialization.jsonObject(with: expected, options: []) as! NSDictionary
+        """.data(using: .utf8))
 
-        XCTAssertEqual(encodedJSONObject, expectedJSONObject)
+        let expectedJSONObject = try #require(try JSONSerialization.jsonObject(with: expected) as? NSDictionary)
+        #expect(encodedJSONObject == expectedJSONObject)
     }
 }

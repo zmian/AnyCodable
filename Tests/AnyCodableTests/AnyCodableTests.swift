@@ -1,10 +1,8 @@
+import Testing
+import Foundation
 @testable import AnyCodable
-import XCTest
 
-
-
-class AnyCodableTests: XCTestCase {
-    
+struct AnyCodableTests {
     struct SomeCodable: Codable {
         var string: String
         var int: Int
@@ -18,9 +16,10 @@ class AnyCodableTests: XCTestCase {
             case hasUnderscore = "has_underscore"
         }
     }
-    
-    func testJSONDecoding() throws {
-        let json = """
+
+    @Test
+    func jsonDecoding() throws {
+        let json = try #require("""
         {
             "boolean": true,
             "booleanString": "true",
@@ -37,25 +36,26 @@ class AnyCodableTests: XCTestCase {
             },
             "null": null
         }
-        """.data(using: .utf8)!
+        """.data(using: .utf8))
 
         let decoder = JSONDecoder()
         let dictionary = try decoder.decode([String: AnyCodable].self, from: json)
 
-        XCTAssertEqual(dictionary["boolean"]?.value as! Bool, true)
-        XCTAssertEqual(dictionary["integer"]?.value as! Int, 42)
-        XCTAssertEqual(dictionary["double"]?.value as! Double, 3.141592653589793, accuracy: 0.001)
-        XCTAssertEqual(dictionary["string"]?.value as! String, "string")
-        XCTAssertEqual(dictionary["booleanString"]?.value as! String, "true")
-        XCTAssertEqual(dictionary["stringInteger"]?.value as! String, "100")
-        XCTAssertEqual(dictionary["stringDouble"]?.value as! String, "99.99")
-        XCTAssertEqual(dictionary["array"]?.value as! [Int], [1, 2, 3])
-        XCTAssertEqual(dictionary["nested"]?.value as! [String: String], ["a": "alpha", "b": "bravo", "c": "charlie"])
-        XCTAssertEqual(dictionary["null"]?.value as! NSNull, NSNull())
+        #expect(dictionary["boolean"]?.value as? Bool == true)
+        #expect(dictionary["integer"]?.value as? Int == 42)
+        #expect(dictionary["double"]?.value as? Double == 3.141592653589793)
+        #expect(dictionary["string"]?.value as? String == "string")
+        #expect(dictionary["booleanString"]?.value as? String == "true")
+        #expect(dictionary["stringInteger"]?.value as? String == "100")
+        #expect(dictionary["stringDouble"]?.value as? String == "99.99")
+        #expect(dictionary["array"]?.value as? [Int] == [1, 2, 3])
+        #expect(dictionary["nested"]?.value as? [String: String] == ["a": "alpha", "b": "bravo", "c": "charlie"])
+        #expect(dictionary["null"]?.value as? NSNull == NSNull())
     }
 
-    func testJSONDecodingEquatable() throws {
-        let json = """
+    @Test
+    func jsonDecodingEquatable() throws {
+        let json = try #require("""
         {
             "boolean": true,
             "integer": 42,
@@ -69,24 +69,31 @@ class AnyCodableTests: XCTestCase {
             },
             "null": null
         }
-        """.data(using: .utf8)!
-        
+        """.data(using: .utf8))
+
         let decoder = JSONDecoder()
         let dictionary1 = try decoder.decode([String: AnyCodable].self, from: json)
         let dictionary2 = try decoder.decode([String: AnyCodable].self, from: json)
 
-        XCTAssertEqual(dictionary1["boolean"], dictionary2["boolean"])
-        XCTAssertEqual(dictionary1["integer"], dictionary2["integer"])
-        XCTAssertEqual(dictionary1["double"], dictionary2["double"])
-        XCTAssertEqual(dictionary1["string"], dictionary2["string"])
-        XCTAssertEqual(dictionary1["array"], dictionary2["array"])
-        XCTAssertEqual(dictionary1["nested"], dictionary2["nested"])
-        XCTAssertEqual(dictionary1["null"], dictionary2["null"])
+        #expect(dictionary1["boolean"] == dictionary2["boolean"])
+        #expect(dictionary1["integer"] == dictionary2["integer"])
+        #expect(dictionary1["double"] == dictionary2["double"])
+        #expect(dictionary1["string"] == dictionary2["string"])
+        #expect(dictionary1["array"] == dictionary2["array"])
+        #expect(dictionary1["nested"] == dictionary2["nested"])
+        #expect(dictionary1["null"] == dictionary2["null"])
     }
 
-    func testJSONEncoding() throws {
-        
-        let someCodable = AnyCodable(SomeCodable(string: "String", int: 100, bool: true, hasUnderscore: "another string"))
+    @Test
+    func jsonEncoding() throws {
+        let someCodable = AnyCodable(
+            SomeCodable(
+                string: "String",
+                int: 100,
+                bool: true,
+                hasUnderscore: "another string"
+            )
+        )
 
         let injectedValue = 1234
         let dictionary: [String: AnyCodable] = [
@@ -106,11 +113,10 @@ class AnyCodableTests: XCTestCase {
         ]
 
         let encoder = JSONEncoder()
-
         let json = try encoder.encode(dictionary)
-        let encodedJSONObject = try JSONSerialization.jsonObject(with: json, options: []) as! NSDictionary
+        let encodedJSONObject = try #require(try JSONSerialization.jsonObject(with: json) as? NSDictionary)
 
-        let expected = """
+        let expected = try #require("""
         {
             "boolean": true,
             "integer": 42,
@@ -131,9 +137,9 @@ class AnyCodableTests: XCTestCase {
             },
             "null": null
         }
-        """.data(using: .utf8)!
-        let expectedJSONObject = try JSONSerialization.jsonObject(with: expected, options: []) as! NSDictionary
+        """.data(using: .utf8))
 
-        XCTAssertEqual(encodedJSONObject, expectedJSONObject)
+        let expectedJSONObject = try #require(try JSONSerialization.jsonObject(with: expected) as? NSDictionary)
+        #expect(encodedJSONObject == expectedJSONObject)
     }
 }
