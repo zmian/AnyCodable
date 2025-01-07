@@ -56,6 +56,8 @@ extension _AnyEncodable {
         #if canImport(Foundation)
         case is NSNull:
             try container.encodeNil()
+        case let number as NSNumber:
+            try encode(nsnumber: number, into: &container)
         #endif
         case is Void:
             try container.encodeNil()
@@ -88,8 +90,6 @@ extension _AnyEncodable {
         case let string as String:
             try container.encode(string)
         #if canImport(Foundation)
-        case let number as NSNumber:
-            try encode(nsnumber: number, into: &container)
         case let date as Date:
             try container.encode(date)
         case let url as URL:
@@ -109,6 +109,11 @@ extension _AnyEncodable {
 
     #if canImport(Foundation)
     private func encode(nsnumber: NSNumber, into container: inout SingleValueEncodingContainer) throws {
+        if CFGetTypeID(nsnumber) == CFBooleanGetTypeID() {
+            try container.encode(nsnumber.boolValue)
+            return
+        }
+
         switch Character(Unicode.Scalar(UInt8(nsnumber.objCType.pointee)))  {
         case "B":
             try container.encode(nsnumber.boolValue)

@@ -157,4 +157,26 @@ struct AnyEncodableTests {
         let expectedJSONObject = try #require(try JSONSerialization.jsonObject(with: expected) as? NSDictionary)
         #expect(encodedJSONObject == expectedJSONObject)
     }
+
+    /// Flaky test, because order of JSON object elements is random during runs.
+    /// On failure, compare output strings.
+    @Test
+    func encodeNSNumberBoolean() throws {
+        let jsonString = #"{"int":0,"boolean":true}"#
+        let json = try #require(jsonString.data(using: .utf8))
+        let jsonObject = try #require(try JSONSerialization.jsonObject(with:  json) as? [String: any Sendable])
+
+        let anyCodable = AnyCodable(jsonObject)
+        let encoder = JSONEncoder()
+        let encoded = try encoder.encode(anyCodable)
+        #expect(String(data: encoded, encoding: .utf8) == jsonString)
+    }
+
+    @Test
+    func encodeNSNumberOneAndZeroAsInt() throws {
+        let dictionary: [NSNumber] = [0, 1]
+        let encoder = JSONEncoder()
+        let json = try encoder.encode(AnyEncodable(dictionary))
+        #expect(String(data: json, encoding: .utf8) == "[0,1]")
+    }
 }
