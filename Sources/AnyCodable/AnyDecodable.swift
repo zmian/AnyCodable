@@ -34,7 +34,7 @@ import Foundation
 @frozen public struct AnyDecodable: Decodable, Sendable {
     public let value: any Sendable
 
-    public init<T: Sendable>(_ value: T?) {
+    public init(_ value: (some Sendable)?) {
         self.value = value ?? ()
     }
 }
@@ -43,7 +43,7 @@ import Foundation
 protocol _AnyDecodable {
     var value: any Sendable { get }
 
-    init<T: Sendable>(_ value: T?)
+    init(_ value: (some Sendable)?)
 }
 
 extension AnyDecodable: _AnyDecodable {}

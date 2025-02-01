@@ -162,12 +162,13 @@ struct AnyEncodableTests {
     /// On failure, compare output strings.
     @Test
     func encodeNSNumberBoolean() throws {
-        let jsonString = #"{"int":0,"boolean":true}"#
+        let jsonString = #"{"boolean":true,"int":0}"#
         let json = try #require(jsonString.data(using: .utf8))
         let jsonObject = try #require(try JSONSerialization.jsonObject(with:  json) as? [String: any Sendable])
 
         let anyCodable = AnyCodable(jsonObject)
         let encoder = JSONEncoder()
+        encoder.outputFormatting = .sortedKeys
         let encoded = try encoder.encode(anyCodable)
         #expect(String(data: encoded, encoding: .utf8) == jsonString)
     }

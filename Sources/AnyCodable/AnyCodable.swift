@@ -15,7 +15,7 @@ import Foundation
 @frozen public struct AnyCodable: Codable, Sendable {
     public let value: any Sendable
 
-    public init<T: Sendable>(_ value: T?) {
+    public init(_ value: (some Sendable)?) {
         self.value = value ?? ()
     }
 }
